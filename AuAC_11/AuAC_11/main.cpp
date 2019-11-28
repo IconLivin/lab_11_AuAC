@@ -1,6 +1,10 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <random>
+#include <chrono>
+#include <map>
+#include <conio.h>
 
 uint64_t First_Hash(std::string str, size_t degree)
 {
@@ -19,7 +23,7 @@ uint64_t Hash(std::string str, uint64_t prev_hash, size_t degree)
 }
 
 int RK_Match(std::string text, std::string pattern) {
-	size_t rk_const = 2;
+	const size_t rk_const = 2;
 	const uint64_t pattern_hash = First_Hash(pattern, rk_const);
 	uint64_t hash = First_Hash(text.substr(0, pattern.size()), rk_const);
 	if (hash == pattern_hash) {
@@ -60,7 +64,7 @@ int KMP_Match(std::string text, std::string pattern) {
 	for (int k = 0, i = 0; i < n; ++i)
 	{
 		while ((k > 0) && (pattern[k] != text[i]))
-			k = pie[k - 1];
+			k = pie[size_t(k - 1)];
 
 		if (pattern[k] == text[i])
 			k++;
@@ -88,17 +92,52 @@ int Naive_Match(std::string text, std::string pattern) {
 }
 
 
+void Generate_Text(std::string& text, int size) {//генерация текста
+	auto now = std::chrono::high_resolution_clock::now();
+	std::mt19937 generator(now.time_since_epoch().count());
+	for (int i = 0; i < size; ++i) {
+		text += char(generator() % 256);
+	}
+}
+
 int main() {
+	
+	
 	std::ios_base::sync_with_stdio(false);
-	std::string text,find_it;
-	std::cout << "Insert text:";
-	std::cin >> text;
-	std::cout << "What to find:";
-	std::cin >> find_it;
-	int kmp_pos = KMP_Match(text, find_it);
-	int naive_pos = Naive_Match(text, find_it);
-	int rk_pos = RK_Match(text, find_it);
-	std::cout << kmp_pos << std::endl << naive_pos << std::endl << rk_pos << std::endl;
+	std::string text;
+	std::uint32_t pattern_length;
+	Generate_Text(text, 100000);
+	const int rk_const = 2;
+	for (pattern_length = 2; pattern_length < text.size(); ++pattern_length) {//перебираем всем множества до длины текста
+		std::map<uint64_t, int> hashes;//таблица - [хеш, позиция в массиве]
+
+		uint64_t hash = First_Hash(text.substr(0, pattern_length), rk_const);//первичное хеширование
+		
+		hashes.insert(std::make_pair(hash, 0));//добавляем первый ключ и нулевую позицию
+
+		for (size_t i = 0; i + pattern_length < text.size(); ++i) {//пробегаем по всему тексту
+			std::string tmp = text.substr(i, uint64_t(pattern_length) + 1);
+			hash = Hash(tmp, hash, rk_const);//вычилсение хеша для следующей подстроки
+			if (hashes.find(hash) == hashes.end()) {//проверяем есть ли такой хеш в мапе
+				hashes.insert(std::make_pair(hash, i + 1));//если нет добавляем его и позицию
+			}
+			else if (tmp.substr(1, pattern_length).compare(text.substr(hashes[hash], pattern_length)) == 0) {//проверяем не совпали ли строчки
+				std::cout << "Repeat!\n";
+				continue;
+			}
+			else {//мы нашли коллизию
+				std::cout << "COLLISION on length of pattern: " << pattern_length << std::endl;
+				std::cout << "Hash:" << hash << std::endl;
+				std::cout << "Position:" << i << std::endl;
+				std::cout << text.substr(fmin(hashes[hash], i), fmax(hashes[hash], i) + pattern_length) << std::endl;
+				std::cout << text.substr(i, pattern_length) << std::endl << text.substr(hashes[hash], pattern_length) << std::endl;
+				for (std::map<uint64_t, int>::iterator i = hashes.begin(); i != hashes.end(); ++i) {
+					std::cout << "Hash:" << i->first << std::endl;
+				}
+				_getch();
+			}
+		}
+	}
 	
 	return 0;
 }

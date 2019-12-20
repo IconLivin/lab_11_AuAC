@@ -26,26 +26,31 @@ void ReadData(std::string path,std::string& str)
 	}
 	in.close();
 }
-uint64_t First_Hash(std::string str, size_t degree)
+uint64_t First_Hash(std::string str, size_t degree,uint64_t p)
 {
 	uint64_t hash = 0;
 	for (size_t i = 0; i < str.size(); ++i)
 	{
 		hash += pow(degree, i) * str[i];
 	}
-	return hash;
+	return hash%p;
 }
 
-uint64_t Hash(std::string str, uint64_t prev_hash, size_t degree)
+uint64_t Hash(std::string str, uint64_t prev_hash, size_t degree,uint64_t p)
 {
 	prev_hash = (prev_hash - str[0]) / degree + str[str.size() - 1] * pow(degree, static_cast<int>(str.size()) - 2);
-	return prev_hash;
+	return prev_hash%p;
 }
 
 int RK_Match(std::string text, std::string pattern) {
-	const size_t rk_const = 2;
-	const uint64_t pattern_hash = First_Hash(pattern, rk_const);
-	uint64_t hash = First_Hash(text.substr(0, pattern.size()), rk_const);
+	uint64_t p = 1000000017;
+	std::random_device rd;
+	std::mt19937 mersenne(rd());
+	std::uniform_int_distribution<uint32_t> dist(pattern.size(), p);
+	const size_t rk_const = dist(mersenne); 
+
+	const uint64_t pattern_hash = First_Hash(pattern, rk_const,p);
+	uint64_t hash = First_Hash(text.substr(0, pattern.size()), rk_const,p);
 	if (hash == pattern_hash) {
 		if (!pattern.compare(text.substr(0, pattern.size()))) {
 			return 0;
@@ -53,7 +58,7 @@ int RK_Match(std::string text, std::string pattern) {
 	}
 	for (size_t i = 0; i < static_cast<size_t>(text.size()) - static_cast<size_t>(pattern.size()); ++i) {
 		std::string tmp = text.substr(i, pattern.size() + 1);
-		hash = Hash(tmp, hash, rk_const);
+		hash = Hash(tmp, hash, rk_const,p);
 		if (hash == pattern_hash) {
 			if (!pattern.compare(tmp.substr(1,pattern.size()))) {
 				return i + 1;
@@ -133,9 +138,9 @@ int main() {
 		std::cout << "Error read text" << std::endl;
 		return -1;
 	}
-	std::cout << KMP_Match(text, "rise") << std::endl;
-	std::cout << Naive_Match(text, "rise") << std::endl;
-	std::cout << RK_Match(text, "rise") << std::endl;
+	std::cout << KMP_Match(text, ",") << std::endl;
+	std::cout << Naive_Match(text, ",") << std::endl;
+	std::cout << RK_Match(text, ",") << std::endl;
 	std::cout << text << std::endl;
 	//const int rk_const = 2;
 	//for (pattern_length = 2; pattern_length < text.size(); ++pattern_length) {//перебираем всем множества до длины текста

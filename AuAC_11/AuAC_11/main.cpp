@@ -126,8 +126,7 @@ void Generate_Text(std::string& text, int size) {//генерация текста
 }
 
 int main() {
-	
-	std::string path = "D:\\GitProject\\lab_11_AuAC\\doc\\Block.txt";
+	std::string path = "D:\\GitProject\\lab_11_AuAC\\doc\\test2.txt";
 	std::ios_base::sync_with_stdio(false);
 	std::string text;
 	std::uint32_t pattern_length;

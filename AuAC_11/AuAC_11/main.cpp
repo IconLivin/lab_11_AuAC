@@ -5,7 +5,27 @@
 #include <chrono>
 #include <map>
 #include <conio.h>
+#include <fstream>
 
+void ReadData(std::string path,std::string& str) 
+{
+	std::ifstream in;
+	in.open(path);
+	if (in.is_open())
+	{
+		while (!in.eof())
+		{
+			std::string tmp;
+			getline(in, tmp);
+			str += tmp+'\n';
+		}
+	}
+	else
+	{
+		str = "";
+	}
+	in.close();
+}
 uint64_t First_Hash(std::string str, size_t degree)
 {
 	uint64_t hash = 0;
@@ -96,48 +116,58 @@ void Generate_Text(std::string& text, int size) {//генерация текста
 	auto now = std::chrono::high_resolution_clock::now();
 	std::mt19937 generator(now.time_since_epoch().count());
 	for (int i = 0; i < size; ++i) {
-		text += char(generator() % 256);
+		text += char(generator() % 127);
 	}
 }
 
 int main() {
 	
-	
+	std::string path = "D:\\GithubProjects\\lab_11_AuAC\\doc\\Block.txt";
 	std::ios_base::sync_with_stdio(false);
 	std::string text;
 	std::uint32_t pattern_length;
-	Generate_Text(text, 100000);
-	const int rk_const = 2;
-	for (pattern_length = 2; pattern_length < text.size(); ++pattern_length) {//перебираем всем множества до длины текста
-		std::map<uint64_t, int> hashes;//таблица - [хеш, позиция в массиве]
-
-		uint64_t hash = First_Hash(text.substr(0, pattern_length), rk_const);//первичное хеширование
-		
-		hashes.insert(std::make_pair(hash, 0));//добавляем первый ключ и нулевую позицию
-
-		for (size_t i = 0; i + pattern_length < text.size(); ++i) {//пробегаем по всему тексту
-			std::string tmp = text.substr(i, uint64_t(pattern_length) + 1);
-			hash = Hash(tmp, hash, rk_const);//вычилсение хеша для следующей подстроки
-			if (hashes.find(hash) == hashes.end()) {//проверяем есть ли такой хеш в мапе
-				hashes.insert(std::make_pair(hash, i + 1));//если нет добавляем его и позицию
-			}
-			else if (tmp.substr(1, pattern_length).compare(text.substr(hashes[hash], pattern_length)) == 0) {//проверяем не совпали ли строчки
-				std::cout << "Repeat!\n";
-				continue;
-			}
-			else {//мы нашли коллизию
-				std::cout << "COLLISION on length of pattern: " << pattern_length << std::endl;
-				std::cout << "Hash:" << hash << std::endl;
-				std::cout << "Position:" << i << std::endl;
-				std::cout << text.substr(fmin(hashes[hash], i), fmax(hashes[hash], i) + pattern_length) << std::endl;
-				std::cout << text.substr(i, pattern_length) << std::endl << text.substr(hashes[hash], pattern_length) << std::endl;
-				for (std::map<uint64_t, int>::iterator i = hashes.begin(); i != hashes.end(); ++i) {
-					std::cout << "Hash:" << i->first << std::endl;
-				}
-				_getch();
-			}
-		}
+	//Generate_Text(text, 100000);
+	ReadData(path, text);
+	if (text.size() == 0)
+	{
+		std::cout << "Error read text" << std::endl;
+		return -1;
 	}
+	std::cout << KMP_Match(text, "rise") << std::endl;
+	std::cout << Naive_Match(text, "rise") << std::endl;
+	std::cout << RK_Match(text, "rise") << std::endl;
+	std::cout << text << std::endl;
+	//const int rk_const = 2;
+	//for (pattern_length = 2; pattern_length < text.size(); ++pattern_length) {//перебираем всем множества до длины текста
+	//	std::map<uint64_t, int> hashes;//таблица - [хеш, позиция в массиве]
+
+	//	uint64_t hash = First_Hash(text.substr(0, pattern_length), rk_const);//первичное хеширование
+	//	
+	//	hashes.insert(std::make_pair(hash, 0));//добавляем первый ключ и нулевую позицию
+
+	//	for (size_t i = 0; i + pattern_length < text.size(); ++i) {//пробегаем по всему тексту
+	//		std::string tmp = text.substr(i, uint64_t(pattern_length) + 1);
+	//		hash = Hash(tmp, hash, rk_const);//вычилсение хеша для следующей подстроки
+	//		if (hashes.find(hash) == hashes.end()) {//проверяем есть ли такой хеш в мапе
+	//			hashes.insert(std::make_pair(hash, i + 1));//если нет добавляем его и позицию
+	//		}
+	//		else if (tmp.substr(1, pattern_length).compare(text.substr(hashes[hash], pattern_length)) == 0) {//проверяем не совпали ли строчки
+	//			std::cout << "Repeat!\n";
+	//			continue;
+	//		}
+	//		else {//мы нашли коллизию
+	//			std::cout << "COLLISION on length of pattern: " << pattern_length << std::endl;
+	//			std::cout << "Hash:" << hash << std::endl;
+	//			std::cout << "Position:" << i << std::endl;
+	//			std::cout << text.substr(fmin(hashes[hash], i), fmax(hashes[hash], i) + pattern_length) << std::endl;
+	//			std::cout << text.substr(i, pattern_length) << std::endl << text.substr(hashes[hash], pattern_length) << std::endl;
+	//			for (std::map<uint64_t, int>::iterator i = hashes.begin(); i != hashes.end(); ++i) {
+	//				std::cout << "Hash:" << i->first << std::endl;
+	//			}
+	//			_getch();
+	//		}
+	//	}
+	//}
 	
 	return 0;
 }

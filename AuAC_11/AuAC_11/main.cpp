@@ -126,7 +126,7 @@ void Generate_Text(std::string& text, int size) {//генерация текста
 }
 
 int main() {
-	std::string path = "D:\\GitProject\\lab_11_AuAC\\doc\\test2.txt";
+	std::string path = "../../doc/test2.txt";
 	std::ios_base::sync_with_stdio(false);
 	std::string text;
 	std::uint32_t pattern_length;
@@ -137,9 +137,11 @@ int main() {
 		std::cout << "Error read text" << std::endl;
 		return -1;
 	}
-	std::cout << KMP_Match(text, ",") << std::endl;
-	std::cout << Naive_Match(text, ",") << std::endl;
-	std::cout << RK_Match(text, ",") << std::endl;
+	text = "aaba";
+	std::string pattern = "ba";
+	std::cout << KMP_Match(text, pattern) << std::endl;
+	std::cout << Naive_Match(text, pattern) << std::endl;
+	std::cout << RK_Match(text, pattern) << std::endl;
 	std::cout << text << std::endl;
 	//const int rk_const = 2;
 	//for (pattern_length = 2; pattern_length < text.size(); ++pattern_length) {//перебираем всем множества до длины текста

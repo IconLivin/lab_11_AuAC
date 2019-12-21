@@ -3,8 +3,6 @@
 #include <iostream>
 #include <random>
 #include <chrono>
-#include <map>
-#include <conio.h>
 #include <fstream>
 
 void ReadData(std::string path,std::string& str) 
@@ -129,51 +127,31 @@ int main() {
 	std::string path = "../../doc/test2.txt";
 	std::ios_base::sync_with_stdio(false);
 	std::string text;
-	std::uint32_t pattern_length;
-	//Generate_Text(text, 100000);
+	std::ofstream out;
+	out.open("OUTPUT.txt");
 	ReadData(path, text);
 	if (text.size() == 0)
 	{
 		std::cout << "Error read text" << std::endl;
 		return -1;
 	}
-	text = "aaba";
-	std::string pattern = "ba";
-	std::cout << KMP_Match(text, pattern) << std::endl;
-	std::cout << Naive_Match(text, pattern) << std::endl;
-	std::cout << RK_Match(text, pattern) << std::endl;
-	std::cout << text << std::endl;
-	//const int rk_const = 2;
-	//for (pattern_length = 2; pattern_length < text.size(); ++pattern_length) {//перебираем всем множества до длины текста
-	//	std::map<uint64_t, int> hashes;//таблица - [хеш, позиция в массиве]
-
-	//	uint64_t hash = First_Hash(text.substr(0, pattern_length), rk_const);//первичное хеширование
-	//	
-	//	hashes.insert(std::make_pair(hash, 0));//добавляем первый ключ и нулевую позицию
-
-	//	for (size_t i = 0; i + pattern_length < text.size(); ++i) {//пробегаем по всему тексту
-	//		std::string tmp = text.substr(i, uint64_t(pattern_length) + 1);
-	//		hash = Hash(tmp, hash, rk_const);//вычилсение хеша для следующей подстроки
-	//		if (hashes.find(hash) == hashes.end()) {//проверяем есть ли такой хеш в мапе
-	//			hashes.insert(std::make_pair(hash, i + 1));//если нет добавляем его и позицию
-	//		}
-	//		else if (tmp.substr(1, pattern_length).compare(text.substr(hashes[hash], pattern_length)) == 0) {//проверяем не совпали ли строчки
-	//			std::cout << "Repeat!\n";
-	//			continue;
-	//		}
-	//		else {//мы нашли коллизию
-	//			std::cout << "COLLISION on length of pattern: " << pattern_length << std::endl;
-	//			std::cout << "Hash:" << hash << std::endl;
-	//			std::cout << "Position:" << i << std::endl;
-	//			std::cout << text.substr(fmin(hashes[hash], i), fmax(hashes[hash], i) + pattern_length) << std::endl;
-	//			std::cout << text.substr(i, pattern_length) << std::endl << text.substr(hashes[hash], pattern_length) << std::endl;
-	//			for (std::map<uint64_t, int>::iterator i = hashes.begin(); i != hashes.end(); ++i) {
-	//				std::cout << "Hash:" << i->first << std::endl;
-	//			}
-	//			_getch();
-	//		}
-	//	}
-	//}
+	std::string pattern;
+	for (int i = 10000; i < 20000; i += 1000) {
+		Generate_Text(text, i);
+		pattern = text.substr(i - i/4, i / 4);
+		out << i << std::endl;
+		auto start = std::chrono::high_resolution_clock::now();
+		int naive = Naive_Match(text, pattern);
+		auto end = std::chrono::high_resolution_clock::now();
+		auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		out << float(time)<< std::endl;
+		start = std::chrono::high_resolution_clock::now();
+		int kmp = KMP_Match(text, pattern);
+		end = std::chrono::high_resolution_clock::now();
+		time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		out << float(time) << std::endl;
+		out << 0 << std::endl;
+	}
 	
 	return 0;
 }

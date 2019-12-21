@@ -6,19 +6,21 @@ def max(x,y,z):
     if x > y:
         if x > z:
             return x
-    if x > y:
-        if x < z:
+        else:
             return z
     if y > x:
         if y > z:
             return y
+        else :
+            return z
 
 
 def find_max(x,y,z):
     maxim = max(x[0],y[0],z[0])
+    print(maxim)
     for i in range(1,len(x)):
         local_m = max(x[i],y[i],z[i])
-        if local_m>maxim:
+        if local_m > maxim:
             maxim=local_m
             
     return maxim    
@@ -49,6 +51,10 @@ new_x=np.arange(x[0],x[-1],0.1)
 y1_smooth = interpolate.interp1d(x,y1,'cubic')
 y2_smooth = interpolate.interp1d(x,y2,'cubic')
 y3_smooth = interpolate.interp1d(x,y3,'cubic')
+print(x)
+print(y1)
+print(y2)
+print(y3)
 m=find_max(y1,y2,y3)
 plt.axis([x[0],x[-1],0,m])
         

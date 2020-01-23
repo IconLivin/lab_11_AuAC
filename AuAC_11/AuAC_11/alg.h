@@ -1,9 +1,11 @@
 #pragma once
 #include <string>
-#include <conio.h>
 #include <random>
 #include<fstream>
 #include <chrono>
+#include <vector>
+
+
 void ReadData(std::string path, std::string& str)
 {
 	std::ifstream in;
@@ -23,28 +25,28 @@ void ReadData(std::string path, std::string& str)
 	}
 	in.close();
 }
-uint64_t First_Hash(std::string str, size_t degree, uint64_t p)
+uint64_t First_Hash(std::string str, std::size_t degree, uint64_t p)
 {
 	uint64_t hash = 0;
-	for (size_t i = 0; i < str.size(); ++i)
+	for (std::size_t i = 0; i < str.length(); ++i)
 	{
 		hash += pow(degree, i) * str[i];
 	}
 	return hash % p;
 }
 
-uint64_t Hash(std::string str, uint64_t prev_hash, size_t degree, uint64_t p)
+uint64_t Hash(std::string str, uint64_t prev_hash, std::size_t degree, uint64_t p)
 {
 	prev_hash = (prev_hash - str[0]) / degree + str[str.size() - 1] * pow(degree, static_cast<int>(str.size()) - 2);
 	return prev_hash % p;
 }
 
-int RK_Match(std::string text, std::string pattern) {
+std::string::size_type RK_Match(const std::string& text, const std::string& pattern) {
 	uint64_t p = 1000000017;
 	std::random_device rd;
 	std::mt19937 mersenne(rd());
 	std::uniform_int_distribution<uint32_t> dist(pattern.size(), p);
-	const size_t rk_const = dist(mersenne);
+	const std::size_t rk_const = dist(mersenne);
 
 	const uint64_t pattern_hash = First_Hash(pattern, rk_const, p);
 	uint64_t hash = First_Hash(text.substr(0, pattern.size()), rk_const, p);
@@ -53,7 +55,7 @@ int RK_Match(std::string text, std::string pattern) {
 			return 0;
 		}
 	}
-	for (size_t i = 0; i < static_cast<size_t>(text.size()) - static_cast<size_t>(pattern.size()); ++i) {
+	for (std::size_t i = 0; i < static_cast<std::size_t>(text.size()) - static_cast<std::size_t>(pattern.size()); ++i) {
 		std::string tmp = text.substr(i, pattern.size() + 1);
 		hash = Hash(tmp, hash, rk_const, p);
 		if (hash == pattern_hash) {
@@ -62,46 +64,43 @@ int RK_Match(std::string text, std::string pattern) {
 			}
 		}
 	}
-	return -1;
+	return std::string::npos;
 }
 
-int KMP_Match(std::string text, std::string pattern) {
-	const size_t n = text.length();
-	const size_t m = pattern.length();
+std::string::size_type KMP_Match(const std::string& text, const std::string& pattern) {
 
-	//PREFIX FUNCTION
-	std::vector<size_t> pie(m);
-	for (size_t q = 1; q < m; ++q) {
-		size_t j = pie[q - 1];
-		while ((j > 0) && (pattern[j] != pattern[q])) {
-			j = pie[j - 1];
+	std::vector<int> pf;
+	pf.resize(pattern.length());
+	for (int k = 0, i = 1; i < pattern.length(); ++i) {
+		while ((k > 0) && (pattern[i] != pattern[k])) {
+			k = pf[k - 1];
 		}
-		if (pattern[j] == pattern[q]) {
-			++j;
+		if (pattern[i] == pattern[k]) {
+			++k;
 		}
-		pie[q] = j;
+		pf[i] = k;
 	}
 
-	//MATCHING
-	for (int k = 0, i = 0; i < n; ++i)
-	{
-		while ((k > 0) && (pattern[k] != text[i]))
-			k = pie[size_t(k - 1)];
-
-		if (pattern[k] == text[i])
-			k++;
-
-		if (k == m)
-			return (i - m + 1);
+	for (int k = 0, i = 0; i < text.length(); ++i) {
+		while ((k > 0) && (pattern[k] != text[i])) {
+			k = pf[k - 1];
+		}
+		if (pattern[k] == text[i]) {
+			++k;
+		}
+		if (k == pattern.length()) {
+			return (i - pattern.length() + 1);
+		}
 	}
-	return -1;
+	
+	return std::string::npos;
 }
 
-int Naive_Match(std::string text, std::string pattern) {
-	const size_t text_length = text.length();
-	const size_t pattern_length = pattern.length();
-	for (size_t i = 0; i < text_length; ++i) {
-		size_t j = 0, i1 = i;
+std::string::size_type Naive_Match(const std::string& text, const std::string& pattern) {
+	const std::size_t text_length = text.length();
+	const std::size_t pattern_length = pattern.length();
+	for (std::size_t i = 0; i < text_length; ++i) {
+		std::size_t j = 0, i1 = i;
 		while (text[i1] == pattern[j]) {
 			if (j == pattern_length - 1) {
 				return i1 - pattern_length + 1;
@@ -110,7 +109,7 @@ int Naive_Match(std::string text, std::string pattern) {
 			++j;
 		}
 	}
-	return -1;
+	return std::string::npos;
 }
 
 
